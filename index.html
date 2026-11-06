@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیلگر جامع شخصیت MBTI</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vazirmatn Font for Persian -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Vazirmatn', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            900: '#4c1d95',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .option-btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 9999px;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-6 md:p-8 flex flex-col items-center">
+
+    <!-- Header -->
+    <header class="w-full max-w-4xl text-center mb-6 sm:mb-8">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/15 border border-violet-400/30 text-violet-300 text-xs sm:text-sm mb-3">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+            <span>سیستم جامع روان‌شناختی ۱۶ تیپ شخصیتی مایرز-بریگز</span>
+        </div>
+        <h1 class="text-2xl sm:text-4xl font-black bg-gradient-to-l from-violet-300 via-fuchsia-200 to-indigo-300 bg-clip-text text-transparent mb-2">
+            تحلیلگر هوشمند تیپ شخصیتی MBTI
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+            ویژگی‌های رفتاری فرد را از طریق آزمون گام‌به‌گام، انتخاب صفات بارز یا توصیف متنی آزاد وارد کنید تا تیپ شخصیتی دقیق او را کشف کنید.
+        </p>
+    </header>
+
+    <!-- Mode Switcher Tabs -->
+    <div class="w-full max-w-4xl mb-6">
+        <div class="glass-card p-1.5 rounded-2xl grid grid-cols-3 gap-1.5">
+            <button onclick="switchMode('quiz')" id="tab-quiz" class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all bg-violet-600 text-white shadow-lg shadow-violet-600/30">
+                <i data-lucide="list-checks" class="w-4 h-4"></i>
+                <span>آزمون ۱۲ سوالی</span>
+            </button>
+            <button onclick="switchMode('traits')" id="tab-traits" class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-300 hover:bg-slate-800/60">
+                <i data-lucide="sliders" class="w-4 h-4"></i>
+                <span>انتخاب سریع ویژگی‌ها</span>
+            </button>
+            <button onclick="switchMode('ai')" id="tab-ai" class="flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-300 hover:bg-slate-800/60">
+                <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+                <span>توصیف متنی با هوش مصنوعی</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-4xl">
+
+        <!-- MODE 1: Interactive 12-Question Quiz -->
+        <section id="section-quiz" class="glass-card rounded-3xl p-5 sm:p-8 shadow-2xl animate-fade-in">
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center text-xs sm:text-sm text-slate-400 mb-2">
+                    <span id="quiz-step-label">سوال ۱ از ۱۲</span>
+                    <span id="quiz-dimension-badge" class="px-2.5 py-0.5 rounded-full bg-slate-800 text-violet-300 border border-violet-500/20 text-xs">بُعد انرژی (E / I)</span>
+                </div>
+                <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div id="quiz-progress-bar" class="h-full bg-gradient-to-l from-violet-500 to-fuchsia-500 transition-all duration-300" style="width: 8.33%"></div>
+                </div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="my-6 min-h-[220px] flex flex-col justify-between">
+                <div>
+                    <h2 id="quiz-question-text" class="text-lg sm:text-xl font-bold text-white leading-relaxed mb-6">
+                        در مهمانی‌ها و جمع‌های شلوغ معمولاً چگونه رفتار می‌کند؟
+                    </h2>
+
+                    <!-- Options Container -->
+                    <div id="quiz-options" class="grid grid-cols-1 gap-3.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex items-center justify-between mt-8 pt-4 border-t border-slate-700/60">
+                    <button onclick="prevQuestion()" id="btn-prev" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition disabled:opacity-40 disabled:pointer-events-none">
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        <span>سوال قبلی</span>
+                    </button>
+
+                    <button onclick="resetQuiz()" class="text-xs text-slate-400 hover:text-rose-400 transition flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>شروع مجدد</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- MODE 2: Quick Trait Selector (Sliders / Tags) -->
+        <section id="section-traits" class="glass-card rounded-3xl p-5 sm:p-8 shadow-2xl hidden animate-fade-in">
+            <div class="mb-6">
+                <h2 class="text-lg sm:text-xl font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="user-check" class="w-5 h-5 text-violet-400"></i>
+                    <span>تنظیم ویژگی‌های بارز فرد در ۴ بُعد اصلی</span>
+                </h2>
+                <p class="text-slate-400 text-xs sm:text-sm">
+                    نوارهای زیر را بر اساس شناختی که از خودتان یا فرد مورد نظر دارید به سمت ویژگی غالب حرکت دهید یا تگ‌های رفتاری را انتخاب کنید.
+                </p>
+            </div>
+
+            <!-- 4 Dimensions Sliders -->
+            <div class="space-y-6 mb-8">
+                <!-- E vs I -->
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs sm:text-sm font-bold text-amber-400">برون‌گرا (E) - اجتماعی و پرانرژی در جمع</span>
+                        <span class="text-xs sm:text-sm font-bold text-sky-400">درون‌گرا (I) - آرام، متفکر و مستقل</span>
+                    </div>
+                    <input type="range" id="slider-EI" min="0" max="100" value="35" oninput="updateTraitPreview()" class="w-full accent-violet-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2">
+                        <span>پرشور، بلند فکر می‌کند، عاشق تعامل</span>
+                        <span id="label-EI" class="text-violet-300 font-bold">۶۵٪ برون‌گرا (E)</span>
+                        <span>تودار، عاشق تنهایی، شنونده خوب</span>
+                    </div>
+                </div>
+
+                <!-- S vs N -->
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs sm:text-sm font-bold text-emerald-400">حسی (S) - واقع‌بین، دقیق و عمل‌گرا</span>
+                        <span class="text-xs sm:text-sm font-bold text-purple-400">شهودی (N) - آینده‌نگر، خلاق و کلی‌نگر</span>
+                    </div>
+                    <input type="range" id="slider-SN" min="0" max="100" value="65" oninput="updateTraitPreview()" class="w-full accent-violet-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2">
+                        <span>توجه به جزئیات، تجربه‌گرا، زمان حال</span>
+                        <span id="label-SN" class="text-violet-300 font-bold">۶۵٪ شهودی (N)</span>
+                        <span>تخیل قوی، فلسفی، به دنبال الگوها</span>
+                    </div>
+                </div>
+
+                <!-- T vs F -->
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs sm:text-sm font-bold text-blue-400">متفکر (T) - منطقی، تحلیل‌گر و رک</span>
+                        <span class="text-xs sm:text-sm font-bold text-rose-400">احساسی (F) - همدل، مهربان و ارزش‌مدار</span>
+                    </div>
+                    <input type="range" id="slider-TF" min="0" max="100" value="30" oninput="updateTraitPreview()" class="w-full accent-violet-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2">
+                        <span>عدالت‌محور، استدلالی، نقدپذیر</span>
+                        <span id="label-TF" class="text-violet-300 font-bold">۷۰٪ متفکر (T)</span>
+                        <span>صلح‌طلب، حساس به احساسات دیگران</span>
+                    </div>
+                </div>
+
+                <!-- J vs P -->
+                <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs sm:text-sm font-bold text-teal-400">قضاوتی (J) - منظم، برنامه‌ریز و قاطع</span>
+                        <span class="text-xs sm:text-sm font-bold text-orange-400">ادراکی (P) - منعطف، خودجوش و آزاد</span>
+                    </div>
+                    <input type="range" id="slider-JP" min="0" max="100" value="25" oninput="updateTraitPreview()" class="w-full accent-violet-500 cursor-pointer h-2 bg-slate-700 rounded-lg">
+                    <div class="flex justify-between text-xs text-slate-400 mt-2">
+                        <span>مدیریت زمان، چک‌لیست، فراری از ابهام</span>
+                        <span id="label-JP" class="text-violet-300 font-bold">۷۵٪ قضاوتی (J)</span>
+                        <span>سازگار با تغییر، دقیقه نودی، کنجکاو</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="calculateFromSliders()" class="w-full py-4 rounded-2xl bg-gradient-to-l from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold shadow-lg shadow-violet-600/30 transition flex items-center justify-center gap-2">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                <span>مشاهده تحلیل کامل این تیپ شخصیتی</span>
+            </button>
+        </section>
+
+        <!-- MODE 3: AI Free-Text Description Analyzer -->
+        <section id="section-ai" class="glass-card rounded-3xl p-5 sm:p-8 shadow-2xl hidden animate-fade-in">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+                <div>
+                    <h2 class="text-lg sm:text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <i data-lucide="bot" class="w-6 h-6 text-fuchsia-400"></i>
+                        <span>توصیف ویژگی‌های فرد به زبان ساده (تحلیل با هوش مصنوعی)</span>
+                    </h2>
+                    <p class="text-slate-400 text-xs sm:text-sm leading-relaxed">
+                        هرچه درباره اخلاق، رفتار، واکنش‌ها در شرایط استرس، نحوه تصمیم‌گیری یا علایق فرد می‌دانید بنویسید تا هوش مصنوعی تیپ MBTI را تشخیص دهد.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+                    <!-- نشانگر سریع وضعیت اتصال در بالای تب -->
+                    <div id="header-conn-badge" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-[11px] text-slate-400">
+                        <span id="header-conn-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+                        <span id="header-conn-text">تست نشده</span>
+                    </div>
+                    <button onclick="toggleApiSettings()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600/80 text-violet-300 text-xs font-bold transition">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span>تنظیمات سرور و API</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible API & Server Configuration Panel -->
+            <div id="api-settings-panel" class="hidden mb-6 p-4 sm:p-5 rounded-2xl bg-slate-900/90 border border-violet-500/40 shadow-inner">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                    <span class="text-xs sm:text-sm font-bold text-violet-300 flex items-center gap-1.5">
+                        <i data-lucide="key-round" class="w-4 h-4"></i>
+                        <span>پیکربندی اختصاصی سرور و کلید API</span>
+                    </span>
+                    <span class="text-[11px] text-slate-400">تنظیمات در مرورگر شما ذخیره می‌شود</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-3">
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1 font-medium">نوع ساختار سرور (Provider):</label>
+                        <select id="cfg-provider" onchange="handleProviderChange()" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-white focus:border-violet-500 focus:outline-none">
+                            <option value="auto">تشخیص خودکار هر نوع سرور (پیشنهادی - Universal)</option>
+                            <option value="openai">OpenAI Compatible (پراکسی / OpenRouter / DeepSeek / لوکال)</option>
+                            <option value="gemini">Google Gemini API</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-300 mb-1 font-medium">نام مدل (Model Name):</label>
+                        <input type="text" id="cfg-model" dir="ltr" placeholder="gemini-3-flash-preview یا gpt-4o-mini" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-left text-white focus:border-violet-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="block text-xs text-slate-300 mb-1 font-medium">آدرس سرور (Endpoint / Base URL):</label>
+                    <input type="text" id="cfg-endpoint" dir="ltr" placeholder="https://api.example.com/v1 یا آدرس کامل سرور" class="w-full p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-left text-white focus:border-violet-500 focus:outline-none">
+                    <p class="text-[11px] text-slate-400 mt-1">می‌توانید آدرس پایه (مثل <code class="text-violet-300">https://api.yourdomain.com/v1</code>) یا آدرس کامل Endpoint را وارد کنید؛ مسیر دقیق به صورت هوشمند تشخیص داده می‌شود.</p>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-xs text-slate-300 mb-1 font-medium">کلید دسترسی (API Key):</label>
+                    <div class="relative">
+                        <input type="password" id="cfg-apikey" dir="ltr" placeholder="AIzaSy... یا sk-..." class="w-full p-2.5 pl-10 rounded-xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-left text-white focus:border-violet-500 focus:outline-none">
+                        <button type="button" onclick="toggleApiKeyVisibility()" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition" title="نمایش/مخفی کردن کلید">
+                            <i id="eye-icon" data-lucide="eye" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- باکس نمایش نتیجه تست اتصال به سرور و مدل -->
+                <div id="api-test-status-box" class="mb-4 p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                    <div class="flex items-start sm:items-center gap-2.5">
+                        <span id="test-status-dot" class="w-3 h-3 rounded-full bg-slate-500 shrink-0 mt-1 sm:mt-0"></span>
+                        <div>
+                            <div id="test-status-title" class="font-bold text-slate-300">وضعیت اتصال: هنوز بررسی نشده است</div>
+                            <div id="test-status-desc" class="text-[11px] text-slate-400 mt-0.5">پس از وارد کردن آدرس سرور و کلید API، روی دکمه «تست اتصال و مدل» کلیک کنید.</div>
+                        </div>
+                    </div>
+                    <div id="test-status-meta" class="hidden shrink-0 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] font-mono text-slate-300 dir-ltr text-left"></div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                    <button type="button" onclick="testApiConnection()" id="btn-test-api" class="px-4 py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition flex items-center gap-1.5">
+                        <i data-lucide="activity" class="w-4 h-4"></i>
+                        <span>تست اتصال و مدل</span>
+                    </button>
+                    <button type="button" onclick="saveApiConfigFromUI()" class="px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition flex items-center gap-1.5">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>ذخیره تنظیمات</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sample Quick Prompts -->
+            <div class="mb-4">
+                <span class="text-xs text-slate-400 block mb-2">نمونه‌های آماده برای تست سریع:</span>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="fillSampleText(1)" class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-violet-900/50 text-slate-300 border border-slate-700 transition">
+                        «فردی درون‌گرا، بسیار منطقی، برنامه‌ریز و کمال‌گرا...»
+                    </button>
+                    <button onclick="fillSampleText(2)" class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-violet-900/50 text-slate-300 border border-slate-700 transition">
+                        «بسیار خونگرم، پرانرژی، خلاق، عاشق ایده‌های نو اما کمی بی‌نظم...»
+                    </button>
+                    <button onclick="fillSampleText(3)" class="text-xs px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-violet-900/50 text-slate-300 border border-slate-700 transition">
+                        «آرام، دلسوز، حامی دیگران، وفادار به سنت‌ها و بسیار مسئولیت‌پذیر...»
+                    </button>
+                </div>
+            </div>
+
+            <textarea id="ai-input-text" rows="5" placeholder="مثال: دوستم آدم بسیار آرامی است و ترجیح می‌دهد آخر هفته‌ها در خانه کتاب بخواند. خیلی به آینده و ایده‌های فلسفی فکر می‌کند، در کمک به دیگران بسیار همدل و دلسوز است اما برای کارهایش همیشه برنامه دقیقی دارد..." class="w-full p-4 rounded-2xl bg-slate-900/80 border border-slate-700 focus:border-violet-500 focus:outline-none text-sm sm:text-base text-white placeholder-slate-500 leading-relaxed mb-4"></textarea>
+
+            <div id="ai-error-box" class="hidden p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs sm:text-sm mb-4"></div>
+
+            <button onclick="analyzeWithAI()" id="btn-ai-submit" class="w-full py-4 rounded-2xl bg-gradient-to-l from-fuchsia-600 to-violet-600 hover:from-fuchsia-500 hover:to-violet-500 text-white font-bold shadow-lg shadow-fuchsia-600/30 transition flex items-center justify-center gap-2">
+                <i data-lucide="wand-2" class="w-5 h-5"></i>
+                <span>تحلیل هوشمند متن و تشخیص تیپ MBTI</span>
+            </button>
+        </section>
+
+        <!-- RESULT SECTION -->
+        <section id="section-result" class="glass-card rounded-3xl p-5 sm:p-8 shadow-2xl mt-6 hidden animate-fade-in">
+            <!-- Top Badge & Type Header -->
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-slate-700/70">
+                <div class="text-center md:text-right">
+                    <span class="inline-block px-3 py-1 rounded-full bg-violet-500/20 text-violet-300 text-xs font-bold mb-2" id="res-group-badge">
+                        گروه تحلیل‌گران (Analysts)
+                    </span>
+                    <div class="flex items-center justify-center md:justify-start gap-3">
+                        <h2 id="res-code" class="text-4xl sm:text-5xl font-black tracking-wider bg-gradient-to-l from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                            INTJ
+                        </h2>
+                        <div class="h-8 w-[2px] bg-slate-700"></div>
+                        <div>
+                            <h3 id="res-title" class="text-xl sm:text-2xl font-bold text-white">معمار (Architect)</h3>
+                            <p id="res-tagline" class="text-xs sm:text-sm text-slate-400">متفکران استراتژیک و خلاق که برای هر چیزی برنامه‌ای دارند.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="copyResultToClipboard()" id="btn-copy-result" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-medium border border-slate-700 transition">
+                        <i data-lucide="copy" class="w-4 h-4"></i>
+                        <span>کپی نتیجه</span>
+                    </button>
+                    <button onclick="restartAll()" class="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 text-violet-300 text-xs sm:text-sm font-medium border border-violet-500/30 transition">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span>تست جدید</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4 Dimensions Breakdown Bars -->
+            <div class="my-6">
+                <h4 class="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+                    <i data-lucide="bar-chart-horizontal" class="w-4 h-4 text-violet-400"></i>
+                    <span>ترکیب ابعاد چهارگانه شخصیت:</span>
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Bar E/I -->
+                    <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span id="bar-label-E" class="text-amber-400">برون‌گرایی (E)</span>
+                            <span id="bar-label-I" class="text-sky-400">درون‌گرایی (I)</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-fill-E" class="bg-amber-500 h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="bar-fill-I" class="bg-sky-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bar S/N -->
+                    <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span id="bar-label-S" class="text-emerald-400">حسی (S)</span>
+                            <span id="bar-label-N" class="text-purple-400">شهودی (N)</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-fill-S" class="bg-emerald-500 h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="bar-fill-N" class="bg-purple-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bar T/F -->
+                    <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span id="bar-label-T" class="text-blue-400">متفکر (T)</span>
+                            <span id="bar-label-F" class="text-rose-400">احساسی (F)</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-fill-T" class="bg-blue-500 h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="bar-fill-F" class="bg-rose-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bar J/P -->
+                    <div class="p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
+                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                            <span id="bar-label-J" class="text-teal-400">قضاوتی (J)</span>
+                            <span id="bar-label-P" class="text-orange-400">ادراکی (P)</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex">
+                            <div id="bar-fill-J" class="bg-teal-500 h-full transition-all duration-500" style="width: 50%"></div>
+                            <div id="bar-fill-P" class="bg-orange-500 h-full transition-all duration-500" style="width: 50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Custom Reasoning Box (Only shown if analyzed via AI) -->
+            <div id="ai-custom-reasoning" class="hidden mb-6 p-4 rounded-2xl bg-fuchsia-950/40 border border-fuchsia-500/30">
+                <h4 class="text-sm font-bold text-fuchsia-300 mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>تحلیل اختصاصی هوش مصنوعی از متن شما:</span>
+                </h4>
+                <p id="ai-reasoning-text" class="text-xs sm:text-sm text-slate-200 leading-relaxed"></p>
+            </div>
+
+            <!-- Detailed Description -->
+            <div class="mb-6 p-4 sm:p-5 rounded-2xl bg-slate-900/50 border border-slate-800">
+                <h4 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-violet-400"></i>
+                    <span>توصیف جامع شخصیت</span>
+                </h4>
+                <p id="res-description" class="text-sm sm:text-base text-slate-300 leading-relaxed"></p>
+            </div>
+
+            <!-- Grid for Strengths, Weaknesses, Careers, Relationships -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Strengths -->
+                <div class="p-4 rounded-2xl bg-emerald-950/25 border border-emerald-500/20">
+                    <h4 class="text-sm sm:text-base font-bold text-emerald-400 mb-3 flex items-center gap-2">
+                        <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                        <span>نقاط قوت کلیدی</span>
+                    </h4>
+                    <ul id="res-strengths" class="space-y-2 text-xs sm:text-sm text-slate-300 list-disc list-inside"></ul>
+                </div>
+
+                <!-- Weaknesses -->
+                <div class="p-4 rounded-2xl bg-rose-950/25 border border-rose-500/20">
+                    <h4 class="text-sm sm:text-base font-bold text-rose-400 mb-3 flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                        <span>نقاط ضعف و چالش‌ها</span>
+                    </h4>
+                    <ul id="res-weaknesses" class="space-y-2 text-xs sm:text-sm text-slate-300 list-disc list-inside"></ul>
+                </div>
+
+                <!-- Best Careers -->
+                <div class="p-4 rounded-2xl bg-indigo-950/25 border border-indigo-500/20">
+                    <h4 class="text-sm sm:text-base font-bold text-indigo-400 mb-3 flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-4 h-4"></i>
+                        <span>مسیرهای شغلی ایده‌آل</span>
+                    </h4>
+                    <div id="res-careers" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <!-- Compatibility & Famous People -->
+                <div class="p-4 rounded-2xl bg-amber-950/25 border border-amber-500/20">
+                    <h4 class="text-sm sm:text-base font-bold text-amber-400 mb-3 flex items-center gap-2">
+                        <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                        <span>تیپ‌های مکمل و افراد مشهور</span>
+                    </h4>
+                    <p class="text-xs text-slate-400 mb-1">بهترین سازگاری عاطفی و فکری:</p>
+                    <div id="res-matches" class="flex gap-2 mb-3"></div>
+                    <p class="text-xs text-slate-400 mb-1">شخصیت‌های برجسته با این تیپ:</p>
+                    <p id="res-famous" class="text-xs sm:text-sm text-slate-200 font-medium"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- All 16 Types Explorer Footer -->
+        <section class="mt-8 glass-card rounded-3xl p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-4">
+                <h3 class="text-sm sm:text-base font-bold text-slate-200 flex items-center gap-2">
+                    <i data-lucide="grid" class="w-4 h-4 text-violet-400"></i>
+                    <span>مرور سریع هر ۱۶ تیپ شخصیتی (برای مشاهده کلیک کنید)</span>
+                </h3>
+                <span class="text-xs text-slate-400">دسته‌بندی استاندارد مایرز-بریگز</span>
+            </div>
+            <div id="all-types-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 left-5 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium hidden items-center gap-2 z-50">
+        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+        <span id="toast-msg">در حافظه کپی شد!</span>
+    </div>
+
+    <script>
+        // ============================================================================
+        // 0. تنظیمات مستقیم سرور و کلید API در داخل کد (HARDCODED CONFIGURATION)
+        // اگر می‌خواهید بدون وارد کردن در صفحه، کلید و سرور را مستقیم در کد قرار دهید،
+        // مقادیر زیر را ویرایش کنید:
+        // ============================================================================
+        const API_CONFIG = {
+            // نوع سرور: 'auto' (تشخیص خودکار هر سروری)، 'openai' یا 'gemini'
+            PROVIDER: "auto",
+
+            // کلید API خود را داخل علامت نقل‌قول زیر قرار دهید:
+            API_KEY: "",
+
+            // آدرس سرور (Base URL یا آدرس کامل):
+            // می‌تواند هر سروری باشد (OpenRouter, DeepSeek, OpenAI, Ollama, Proxy, Gemini و ...)
+            ENDPOINT_URL: "https://generativelanguage.googleapis.com/v1beta/models",
+
+            // نام مدل هوش مصنوعی:
+            MODEL_NAME: "gemini-3-flash-preview"
+        };
+
+        // ==========================================
+        // 0.1 SMART UNIVERSAL SERVER & ENDPOINT RESOLVER
+        // ==========================================
+        function detectEffectiveProvider(providerSetting, endpointUrl, apiKey, modelName) {
+            const urlLower = (endpointUrl || '').trim().toLowerCase();
+            const keyTrim = (apiKey || '').trim();
+            const modelLower = (modelName || '').trim().toLowerCase();
+
+            // اگر آدرس سرور صراحتاً یک سرور غیر گوگل است یا به /v1 ختم می‌شود، حتماً ساختار OpenAI-Compatible است
+            if (urlLower && !urlLower.includes('googleapis.com') && !urlLower.includes(':generatecontent')) {
+                return 'openai';
+            }
+            if (urlLower.includes('googleapis.com') && urlLower.includes('/openai')) {
+                return 'openai';
+            }
+            if (providerSetting === 'gemini' || providerSetting === 'openai') {
+                return providerSetting;
+            }
+            if (
+                urlLower.includes('googleapis.com') ||
+                urlLower.includes(':generatecontent') ||
+                keyTrim.startsWith('AIza') ||
+                (!urlLower && modelLower.startsWith('gemini'))
+            ) {
+                return 'gemini';
+            }
+            return 'openai';
+        }
+
+        // ساخت لیست آدرس‌های استاندارد از روی ورودی کاربر (حل قطعی خطای POST /v1)
+        function buildOpenAICandidateUrls(rawEndpoint) {
+            let base = (rawEndpoint || 'https://api.openai.com/v1').trim();
+            // حذف اسلش‌های اضافی انتهای آدرس
+            base = base.replace(/\/+$/, '');
+
+            const candidates = [];
+
+            // حالت ۱: کاربر خودش آدرس کامل /chat/completions را وارد کرده است
+            if (base.toLowerCase().endsWith('/chat/completions')) {
+                candidates.push(base);
+                return candidates;
+            }
+
+            // حالت ۲: آدرس کاربر به /v1 یا /v1beta یا /api/v1 ختم می‌شود -> باید /chat/completions به آن اضافه شود
+            if (/\/v\d+(beta)?$/i.test(base)) {
+                candidates.push(`${base}/chat/completions`);
+                return candidates;
+            }
+
+            // حالت ۳: کاربر فقط دامنه اصلی را وارد کرده است (مثلاً https://api.example.com)
+            candidates.push(`${base}/v1/chat/completions`);
+            candidates.push(`${base}/chat/completions`);
+            return candidates;
+        }
+
+        function buildGeminiEndpoint(rawEndpoint, modelName, apiKey) {
+            let base = (rawEndpoint || 'https://generativelanguage.googleapis.com/v1beta/models').trim().replace(/\/+$/, '');
+            const model = (modelName || 'gemini-3-flash-preview').trim();
+            const keyParam = apiKey ? `key=${encodeURIComponent(apiKey.trim())}` : `key=`;
+
+            if (base.includes(':generateContent')) {
+                return base.includes('?') ? `${base}&${keyParam}` : `${base}?${keyParam}`;
+            }
+            if (base.endsWith(`/models/${model}`)) {
+                return `${base}:generateContent?${keyParam}`;
+            }
+            if (base.endsWith('/models')) {
+                return `${base}/${model}:generateContent?${keyParam}`;
+            }
+            return `${base}/v1beta/models/${model}:generateContent?${keyParam}`;
+        }
+
+        // تابع جامع ارسال درخواست به هر نوع سرور (Universal AI Caller)
+        async function callUniversalAI({ provider, endpoint, apiKey, model, systemPrompt, userPrompt, maxTokens = 600, isTest = false }) {
+            const effectiveProvider = detectEffectiveProvider(provider, endpoint, apiKey, model);
+
+            if (effectiveProvider === 'gemini') {
+                const finalUrl = buildGeminiEndpoint(endpoint, model, apiKey);
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }]
+                };
+                if (systemPrompt) {
+                    payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+                }
+                if (!isTest) {
+                    payload.generationConfig = { responseMimeType: "application/json" };
+                }
+
+                const res = await fetch(finalUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const errText = await res.text().catch(() => '');
+                    throw new Error(`کد خطا ${res.status}: ${errText.slice(0, 180) || res.statusText}`);
+                }
+
+                const data = await res.json();
+                const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                return { text, usedUrl: finalUrl, provider: 'gemini' };
+            } else {
+                // ساختار OpenAI-Compatible (شامل هر نوع پراکسی، سرور اختصاصی، AvalAI، OpenRouter، DeepSeek و غیره)
+                const candidateUrls = buildOpenAICandidateUrls(endpoint);
+                let lastError = null;
+
+                for (const targetUrl of candidateUrls) {
+                    try {
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        };
+                        if (apiKey && apiKey.trim() !== '') {
+                            headers['Authorization'] = `Bearer ${apiKey.trim()}`;
+                        }
+
+                        const messages = [];
+                        if (systemPrompt) {
+                            messages.push({ role: 'system', content: systemPrompt });
+                        }
+                        messages.push({ role: 'user', content: userPrompt });
+
+                        const payload = {
+                            model: (model || 'gpt-4o-mini').trim(),
+                            messages: messages,
+                            temperature: 0.4
+                        };
+                        if (maxTokens) {
+                            payload.max_tokens = maxTokens;
+                        }
+
+                        const res = await fetch(targetUrl, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!res.ok) {
+                            const errBody = await res.text().catch(() => '');
+                            let parsedMsg = errBody.slice(0, 200);
+                            try {
+                                const errJson = JSON.parse(errBody);
+                                parsedMsg = errJson?.error?.message || errJson?.message || parsedMsg;
+                            } catch (_) {}
+                            throw new Error(`کد خطا: ${res.status} - ${parsedMsg || res.statusText}`);
+                        }
+
+                        const data = await res.json();
+                        const text =
+                            data?.choices?.[0]?.message?.content ??
+                            data?.choices?.[0]?.text ??
+                            data?.response ??
+                            data?.output ??
+                            '';
+
+                        return { text, usedUrl: targetUrl, provider: 'openai' };
+                    } catch (err) {
+                        lastError = err;
+                    }
+                }
+
+                throw lastError || new Error('امکان برقراری ارتباط با آدرس سرور واردشده وجود ندارد.');
+            }
+        }
+
+        // استخراج هوشمند JSON از پاسخ متنی هر مدل زبانی
+        function extractJsonFromText(rawText) {
+            if (!rawText || typeof rawText !== 'string') {
+                throw new Error('پاسخ دریافتی از سرور خالی است.');
+            }
+            const cleaned = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+            try {
+                return JSON.parse(cleaned);
+            } catch (_) {
+                const match = cleaned.match(/\{[\s\S]*\}/);
+                if (match) {
+                    return JSON.parse(match[0]);
+                }
+                throw new Error('فرمت پاسخ مدل قابل تبدیل به ساختار MBTI نبود.');
+            }
+        }
+
+        // ==========================================
+        // 0.2 UI SETTINGS & CONNECTION TESTER
+        // ==========================================
+        function getActiveApiConfig() {
+            const saved = localStorage.getItem('MBTI_CUSTOM_API_CONFIG');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    return {
+                        PROVIDER: parsed.PROVIDER || API_CONFIG.PROVIDER,
+                        API_KEY: parsed.API_KEY !== undefined ? parsed.API_KEY : API_CONFIG.API_KEY,
+                        ENDPOINT_URL: parsed.ENDPOINT_URL || API_CONFIG.ENDPOINT_URL,
+                        MODEL_NAME: parsed.MODEL_NAME || API_CONFIG.MODEL_NAME
+                    };
+                } catch (e) {
+                    console.warn("Invalid saved API config, using default.");
+                }
+            }
+            return API_CONFIG;
+        }
+
+        function loadApiConfigToUI() {
+            const cfg = getActiveApiConfig();
+            document.getElementById('cfg-provider').value = cfg.PROVIDER || 'auto';
+            document.getElementById('cfg-apikey').value = cfg.API_KEY || '';
+            document.getElementById('cfg-endpoint').value = cfg.ENDPOINT_URL || '';
+            document.getElementById('cfg-model').value = cfg.MODEL_NAME || '';
+        }
+
+        function toggleApiSettings() {
+            const panel = document.getElementById('api-settings-panel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                loadApiConfigToUI();
+            }
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('cfg-apikey');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                input.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function handleProviderChange() {
+            const provider = document.getElementById('cfg-provider').value;
+            const endpointInput = document.getElementById('cfg-endpoint');
+            const modelInput = document.getElementById('cfg-model');
+
+            if (provider === 'gemini') {
+                if (!endpointInput.value || endpointInput.value.includes('openai.com')) {
+                    endpointInput.value = 'https://generativelanguage.googleapis.com/v1beta/models';
+                }
+                if (!modelInput.value || modelInput.value.startsWith('gpt')) {
+                    modelInput.value = 'gemini-3-flash-preview';
+                }
+            } else if (provider === 'openai') {
+                if (!endpointInput.value || endpointInput.value.includes('googleapis.com')) {
+                    endpointInput.value = 'https://api.openai.com/v1';
+                }
+                if (!modelInput.value || modelInput.value.startsWith('gemini')) {
+                    modelInput.value = 'gpt-4o-mini';
+                }
+            }
+        }
+
+        function saveApiConfigFromUI(silent = false) {
+            const newCfg = {
+                PROVIDER: document.getElementById('cfg-provider').value.trim(),
+                API_KEY: document.getElementById('cfg-apikey').value.trim(),
+                ENDPOINT_URL: document.getElementById('cfg-endpoint').value.trim(),
+                MODEL_NAME: document.getElementById('cfg-model').value.trim()
+            };
+            localStorage.setItem('MBTI_CUSTOM_API_CONFIG', JSON.stringify(newCfg));
+            if (!silent) {
+                showToast('تنظیمات سرور و کلید API با موفقیت ذخیره شد!');
+            }
+            return newCfg;
+        }
+
+        function updateConnectionStatusUI(state, title, desc, metaText = '') {
+            const box = document.getElementById('api-test-status-box');
+            const dot = document.getElementById('test-status-dot');
+            const titleEl = document.getElementById('test-status-title');
+            const descEl = document.getElementById('test-status-desc');
+            const metaEl = document.getElementById('test-status-meta');
+
+            const headerBadge = document.getElementById('header-conn-badge');
+            const headerDot = document.getElementById('header-conn-dot');
+            const headerText = document.getElementById('header-conn-text');
+
+            if (state === 'testing') {
+                box.className = 'mb-4 p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs';
+                dot.className = 'w-3 h-3 rounded-full bg-amber-400 animate-ping shrink-0 mt-1 sm:mt-0';
+                titleEl.className = 'font-bold text-amber-300';
+                descEl.className = 'text-[11px] text-amber-200/80 mt-0.5';
+
+                headerBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-[11px] text-amber-300';
+                headerDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-ping';
+                headerText.textContent = 'در حال تست...';
+            } else if (state === 'success') {
+                box.className = 'mb-4 p-3.5 rounded-xl bg-emerald-950/35 border border-emerald-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs';
+                dot.className = 'w-3 h-3 rounded-full bg-emerald-400 shrink-0 mt-1 sm:mt-0 shadow-[0_0_10px_#34d399]';
+                titleEl.className = 'font-bold text-emerald-300';
+                descEl.className = 'text-[11px] text-emerald-200/80 mt-0.5';
+
+                headerBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300';
+                headerDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+                headerText.textContent = 'متصل به سرور';
+            } else if (state === 'error') {
+                box.className = 'mb-4 p-3.5 rounded-xl bg-rose-950/35 border border-rose-500/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs';
+                dot.className = 'w-3 h-3 rounded-full bg-rose-500 shrink-0 mt-1 sm:mt-0 shadow-[0_0_10px_#f43f5e]';
+                titleEl.className = 'font-bold text-rose-300';
+                descEl.className = 'text-[11px] text-rose-200/80 mt-0.5';
+
+                headerBadge.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-[11px] text-rose-300';
+                headerDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+                headerText.textContent = 'خطای اتصال';
+            }
+
+            titleEl.textContent = title;
+            descEl.textContent = desc;
+
+            if (metaText) {
+                metaEl.textContent = metaText;
+                metaEl.classList.remove('hidden');
+            } else {
+                metaEl.classList.add('hidden');
+            }
+        }
+
+        async function testApiConnection() {
+            const cfg = saveApiConfigFromUI(true);
+            const btn = document.getElementById('btn-test-api');
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>در حال بررسی سرور...</span>`;
+            lucide.createIcons();
+
+            updateConnectionStatusUI(
+                'testing',
+                'در حال ارسال درخواست تست به سرور و مدل...',
+                'لطفاً چند لحظه صبر کنید تا پاسخ سرور و صحت کلید بررسی شود.'
+            );
+
+            const startTime = performance.now();
+
+            try {
+                const res = await callUniversalAI({
+                    provider: cfg.PROVIDER,
+                    endpoint: cfg.ENDPOINT_URL,
+                    apiKey: cfg.API_KEY,
+                    model: cfg.MODEL_NAME,
+                    systemPrompt: 'Respond with OK.',
+                    userPrompt: 'Ping! Reply with OK.',
+                    maxTokens: 15,
+                    isTest: true
+                });
+
+                const latency = Math.round(performance.now() - startTime);
+                updateConnectionStatusUI(
+                    'success',
+                    `اتصال به سرور و مدل «${cfg.MODEL_NAME || 'پیش‌فرض'}» با موفقیت برقرار شد!`,
+                    `مسیر نهایی سرور: ${res.usedUrl}`,
+                    `${latency} ms | OK`
+                );
+                showToast('اتصال به سرور و مدل کاملاً برقرار است!');
+            } catch (err) {
+                updateConnectionStatusUI(
+                    'error',
+                    'خطا در اتصال به سرور یا کلید API نامعتبر',
+                    `جزئیات خطا: ${err.message || 'عدم دریافت پاسخ از سرور'}`,
+                    'FAILED'
+                );
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="activity" class="w-4 h-4"></i><span>تست اتصال و مدل</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        // ==========================================
+        // 1. COMPLETE 16 MBTI TYPES DATABASE (PERSIAN)
+        // ==========================================
+        const MBTI_DATABASE = {
+            "INTJ": {
+                title: "معمار (Architect)",
+                group: "گروه تحلیل‌گران (Analysts)",
+                tagline: "متفکرانی استراتژیک، مستقل و دوراندیش که برای هر کاری نقشه‌ای دقیق دارند.",
+                description: "افراد با تیپ شخصیتی INTJ ذهن‌هایی بسیار تحلیلی، مستقل و هدفمند دارند. آن‌ها به جای پذیرش کورکورانه قوانین، همواره به دنبال بهینه‌سازی سیستم‌ها و کشف الگوهای پنهان هستند. درون‌گرایی به آن‌ها کمک می‌کند تمرکز عمیقی روی پروژه‌های بلندمدت داشته باشند و با تکیه بر منطق و برنامه‌ریزی، ایده‌های پیچیده را به واقعیت تبدیل کنند.",
+                strengths: ["تفکر استراتژیک و آینده‌نگر", "استقلال فکری و اعتمادبه‌نفس بالا", "توانایی حل مسائل پیچیده", "قاطعیت و تمرکز عمیق روی اهداف"],
+                weaknesses: ["گاه بیش از حد منتقد یا کمال‌گرا", "بی‌حوصلگی نسبت به کارهای تکراری و روزمره", "دشواری در ابراز مستقیم احساسات عاطفی"],
+                careers: ["معمار سیستم‌های نرم‌افزاری", "استراتژیست کسب‌وکار", "پژوهشگر علمی", "مهندس داده و هوش مصنوعی", "تحلیل‌گر مالی"],
+                matches: ["ENFP", "ENTP"],
+                famous: "ایلان ماسک، کریستوفر نولان، نیچه"
+            },
+            "INTP": {
+                title: "منطق‌دان (Logician)",
+                group: "گروه تحلیل‌گران (Analysts)",
+                tagline: "مبتکرانی کنجکاو با عطش سیری‌ناپذیر برای دانش و کشف قوانین جهان.",
+                description: "تیپ INTP عاشق نظریه‌پردازی، تحلیل‌های عمیق و کشف چرایی پدیده‌هاست. آن‌ها ذهنی بسیار باز، خلاق و منطقی دارند و ترجیح می‌دهند به جای پیروی از چارچوب‌های خشک، آزادانه در دنیای ایده‌ها کاوش کنند. در بحث‌های علمی و فلسفی بسیار می‌درخشند.",
+                strengths: ["تحلیل‌گر بسیار دقیق و بی‌طرف", "خلاقیت بالا در ارائه راه‌حل‌های غیرمتعارف", "ذهن باز و کنجکاوی بی‌پایان", "صداقت فکری"],
+                weaknesses: ["غرق شدن در افکار و فراموشی جزئیات روزمره", "تردید در تصمیم‌گیری نهایی به دلیل بررسی بیش از حد", "ارتباط دشوار با فضاهای بیش از حد احساسی"],
+                careers: ["برنامه‌نویس و توسعه‌دهنده الگوریتم", "فیلسوف و استاد دانشگاه", "فیزیک‌دان / ریاضی‌دان", "تحلیل‌گر سیستم", "نویسنده علمی"],
+                matches: ["ENTJ", "ENFJ"],
+                famous: "آلبرت اینشتین، بیل گیتس، ماری کوری"
+            },
+            "ENTJ": {
+                title: "فرمانده (Commander)",
+                group: "گروه تحلیل‌گران (Analysts)",
+                tagline: "رهبرانی جسور، بااراده و مصمم که همیشه راهی پیدا می‌کنند یا راهی می‌سازند.",
+                description: "افراد ENTJ مدیران و رهبران طبیعی هستند. آن‌ها از چالش‌های بزرگ لذت می‌برند، به سرعت ناکارآمدی‌ها را تشخیص می‌دهند و با سازمان‌دهی افراد و منابع، اهداف بلندپروازانه را محقق می‌کنند. رک‌گویی، قاطعیت و دیدگاه کلان از ویژگی‌های بارز آن‌هاست.",
+                strengths: ["قدرت رهبری و سازمان‌دهی فوق‌العاده", "اعتمادبه‌نفس و کاریزمای بالا", "کارآمد، پرانرژی و نتیجه‌گرا", "دیدگاه استراتژیک"],
+                weaknesses: ["ناشکیبا در برابر کندی یا بی‌نظمی", "گاه سلطه‌گر یا بیش از حد قاطع", "کم‌توجهی به ظرافت‌های عاطفی دیگران"],
+                careers: ["مدیرعامل و کارآفرین", "قاضی و وکیل ارشد", "مشاور مدیریت", "مدیر پروژه کلان", "سیاست‌مدار"],
+                matches: ["INTP", "INFP"],
+                famous: "استیو جابز، مارگارت تاچر، گوردون رمزی"
+            },
+            "ENTP": {
+                title: "مناظره‌کننده (Debater)",
+                group: "گروه تحلیل‌گران (Analysts)",
+                tagline: "متفکرانی هوشمند، حاضر‌جواب و کنجکاو که هیچ چالشی ذهنشان را متوقف نمی‌کند.",
+                description: "تیپ ENTP عاشق طوفان فکری، به چالش کشیدن فرضیات رایج و گفت‌وگوهای پرشور است. آن‌ها بسیار سریع فکر می‌کنند، ارتباط بین موضوعات به ظاهر بی‌ربط را می‌بینند و از یکنواختی گریزانند. شوخ‌طبعی و هوش کلامی بالا آن‌ها را در جمع‌ها متمایز می‌کند.",
+                strengths: ["بسیار خوش‌فکر و ایده‌پرداز", "انعطاف‌پذیری و سرعت عمل بالا در بحران", "مهارت کلامی و متقاعدسازی قوی", "پرانرژی و کاریزماتیک"],
+                weaknesses: ["علاقه به بحث صرفاً برای چالش فکری", "نیمه‌کاره رها کردن پروژه‌ها پس از رفع جذابیت اولیه", "بی‌حوصلگی نسبت به قوانین خشک"],
+                careers: ["کارآفرین استارتاپی", "مدیر خلاقیت و تبلیغات", "وکیل دادگستری", "مخترع و طراح محصول", "مجری و تحلیل‌گر رسانه"],
+                matches: ["INFJ", "INTJ"],
+                famous: "توماس ادیسون، لئوناردو داوینچی، رابرت داونی جونیور"
+            },
+            "INFJ": {
+                title: "حامی (Advocate)",
+                group: "گروه دیپلمات‌ها (Diplomats)",
+                tagline: "کمال‌گرایانی آرام، عمیق و الهام‌بخش که به دنبال معنا بخشیدن به زندگی انسان‌ها هستند.",
+                description: "تیپ INFJ نادرترین تیپ شخصیتی است که ترکیبی شگفت‌انگیز از شهود عمیق، همدلی انسانی و اراده محکم دارد. آن‌ها به سادگی نیت و احساسات درونی دیگران را درک می‌کنند و دغدغه همیشگی‌شان کمک به رشد انسان‌ها و ساختن دنیایی اخلاقی‌تر است.",
+                strengths: ["درک عمیق روان‌شناختی از انسان‌ها", "خلاق، باانگیزه و هدفمند", "وفادار و پایبند به ارزش‌های اخلاقی", "توانایی الهام‌بخشی به دیگران"],
+                weaknesses: ["حساسیت بالا در برابر نقد و تعارض", "کمال‌گرایی فرساینده", "احتمال فرسودگی شغلی به دلیل جذب غم دیگران"],
+                careers: ["روان‌شناس و مشاور", "نویسنده و شاعر", "فعال حقوق بشر و مددکار", "طراح تجربه کاربری (UX)", "مربی توسعه فردی"],
+                matches: ["ENTP", "ENFP"],
+                famous: "نلسون ماندلا، مارتین لوتر کینگ، کارل یونگ"
+            },
+            "INFP": {
+                title: "میانجی (Mediator)",
+                group: "گروه دیپلمات‌ها (Diplomats)",
+                tagline: "افرادی شاعرپیشه، مهربان و نوع‌دوست که همواره در جست‌وجوی معنا و اصالت هستند.",
+                description: "افراد INFP دنیای درونی بسیار غنی، تخیل قوی و قلبی سرشار از مهربانی دارند. برای آن‌ها هماهنگی با ارزش‌های درونی و اصالت فردی مهم‌ترین اصل زندگی است. آن‌ها شنوندگانی فوق‌العاده هستند و در هنر، ادبیات و درک رنج دیگران بی‌نظیر عمل می‌کنند.",
+                strengths: ["همدلی و شفقت بسیار عمیق", "خلاقیت هنری و ادبی کم‌نظیر", "ذهن باز و بدون پیش‌داوری", "وفادار به ارزش‌های انسانی"],
+                weaknesses: ["خیال‌پردازی بیش از حد و دشواری در امور اجرایی", "رنجش سریع از انتقادات تند", "تمایل به انزوا در زمان استرس"],
+                careers: ["نویسنده و فیلم‌نامه‌نویس", "هنرمند و طراح گرافیک", "روان‌درمانگر", "محقق علوم انسانی", "ویراستار"],
+                matches: ["ENFJ", "ENTJ"],
+                famous: "ویلیام شکسپیر، جی.آر.آر. تالکین، ونسان ون گوگ"
+            },
+            "ENFJ": {
+                title: "قهرمان (Protagonist)",
+                group: "گروه دیپلمات‌ها (Diplomats)",
+                tagline: "رهبرانی کاریزماتیک، دلسوز و الهام‌بخش که شنوندگان خود را مسحور می‌کنند.",
+                description: "تیپ ENFJ عاشق شکوفا کردن استعدادهای دیگران است. آن‌ها بسیار خونگرم، مسئولیت‌پذیر و اجتماعی هستند و به سرعت جو عاطفی هر جمعی را درک می‌کنند. ترکیب همدلی و نظم باعث می‌شود در رهبری تیم‌ها، آموزش و هدایت انسان‌ها فوق‌العاده موفق باشند.",
+                strengths: ["کاریزما و مهارت ارتباطی بی‌نظیر", "نوع‌دوست، حامی و قابل اعتماد", "توانایی ایجاد اتحاد و انگیزه در جمع", "منظم و مسئولیت‌پذیر"],
+                weaknesses: ["فداکاری بیش از حد و نادیده گرفتن نیازهای خود", "نگرانی زیاد درباره قضاوت دیگران", "مداخله بیش از حد برای حل مشکلات اطرافیان"],
+                careers: ["معلم و استاد دانشگاه", "مدیر منابع انسانی (HR)", "کوچ و سخنران انگیزشی", "دیپلمات و روابط عمومی", "مدیر سازمان‌های مردم‌نهاد"],
+                matches: ["INFP", "ISFP"],
+                famous: "باراک اوباما، اپرا وینفری، مالالا یوسف‌زی"
+            },
+            "ENFP": {
+                title: "مبارز / الهام‌بخش (Campaigner)",
+                group: "گروه دیپلمات‌ها (Diplomats)",
+                tagline: "ارواحی آزاد، پرشور، خلاق و اجتماعی که همیشه دلیلی برای لبخند زدن پیدا می‌کنند.",
+                description: "افراد ENFP سرشار از شور زندگی، ایده‌های نو و کنجکاوی نسبت به آدم‌ها هستند. آن‌ها از روزمرگی بیزارند و هر روز را فرصتی برای کشف ارتباطات معنادار و تجربه‌های تازه می‌دانند. انرژی مثبت آن‌ها به سرعت به تمام اطرافیان منتقل می‌شود.",
+                strengths: ["بسیار خونگرم، صمیمی و پرانرژی", "خلاقیت و ایده‌پردازی فوق‌العاده", "درک سریع احساسات و انگیزه‌های دیگران", "انعطاف‌پذیر و خوش‌بین"],
+                weaknesses: ["دشواری در تمرکز طولانی روی یک کار تکراری", "حساسیت بالا و فکر کردن بیش از حد به رفتار دیگران", "بی‌نظمی در مدیریت زمان"],
+                careers: ["روزنامه‌نگار و تولیدکننده محتوا", "مشاور خلاقیت و برندینگ", "بازیگر و کارگردان", "روان‌شناس کودک و نوجوان", "کارآفرین اجتماعی"],
+                matches: ["INTJ", "INFJ"],
+                famous: "رابین ویلیامز، والت دیزنی، ویل اسمیت"
+            },
+            "ISTJ": {
+                title: "بازرس / تدارکات‌چی (Logistician)",
+                group: "گروه نگهبانان (Sentinels)",
+                tagline: "افرادی عمل‌گرا، واقع‌بین، دقیق و فوق‌العاده قابل اعتماد که پایبند به تعهداتشان هستند.",
+                description: "تیپ ISTJ ستون استوار نظم، قانون و مسئولیت‌پذیری است. آن‌ها به واقعیات ملموس، تجربه گذشته و ساختارهای شفاف تکیه می‌کنند. وقتی قولی می‌دهند، تحت هر شرایطی آن را با بالاترین دقت به سرانجام می‌رسانند و از آشفتگی بیزارند.",
+                strengths: ["بسیار منظم، دقیق و وظیفه‌شناس", "صادق، مستقیم و وفادار به تعهدات", "آرام و مسلط در شرایط بحرانی", "حافظه قوی در جزئیات"],
+                weaknesses: ["مقاومت در برابر تغییرات ناگهانی و روش‌های تست‌نشده", "سخت‌گیری بیش از حد به خود و دیگران", "دشواری در درک تصمیمات صرفاً احساسی"],
+                careers: ["حسابدار و حسابرس مالی", "قاضی و کارشناس حقوقی", "مهندس صنایع و کنترل کیفیت", "مدیر اداری و اجرایی", "تحلیل‌گر داده"],
+                matches: ["ESFP", "ESTP"],
+                famous: "جورج واشنگتن، وارن بافت، آنگلا مرکل"
+            },
+            "ISFJ": {
+                title: "مدافع (Defender)",
+                group: "گروه نگهبانان (Sentinels)",
+                tagline: "حامیانی بسیار فداکار، مهربان و مسئولیت‌پذیر که همواره آماده دفاع از عزیزانشان هستند.",
+                description: "تیپ ISFJ ترکیبی کمیاب از دقت، نظم و قلبی بسیار مهربان است. آن‌ها جزئیات مربوط به نیازهای اطرافیان را به خوبی به خاطر می‌سپارند و بدون هیاهو و خودنمایی، بار سنگینی از مسئولیت‌های خانواده و محیط کار را به دوش می‌کشند.",
+                strengths: ["فوق‌العاده حامی، دلسوز و وفادار", "دقت بالا به جزئیات و نیازهای عملی دیگران", "صبور، قابل اعتماد و سخت‌کوش", "شنونده بسیار خوب"],
+                weaknesses: ["نه نگفتن و پذیرش بار بیش از توان", "گریز از تعارض و فرو خوردن خشم", "کم‌توجهی به دستاوردهای خود"],
+                careers: ["پزشک و پرستار", "معلم دوره ابتدایی", "مددکار اجتماعی", "متخصص منابع انسانی", "طراح داخلی"],
+                matches: ["ESFP", "ESTP"],
+                famous: "مادر ترزا، کیت میدلتون، بیانسه"
+            },
+            "ESTJ": {
+                title: "مجری (Executive)",
+                group: "گروه نگهبانان (Sentinels)",
+                tagline: "مدیرانی کارآمد، قانون‌مدار و قاطع که در مدیریت امور و افراد بی‌رقیب هستند.",
+                description: "افراد ESTJ عاشق نظم، ساختار شفاف و اجرای دقیق برنامه‌ها هستند. آن‌ها واقع‌بین و عمل‌گرا بوده و انتظار دارند همه به قوانین و استانداردها پایبند باشند. در مدیریت سازمان‌ها، پروژه‌های اجرایی و هدایت تیم‌ها بسیار توانمندند.",
+                strengths: ["سازمان‌دهنده و مدیر اجرایی فوق‌العاده", "پشتکار بالا و نتیجه‌گرایی", "صریح، صادق و قابل اتکا", "پایبند به اصول و استانداردها"],
+                weaknesses: ["انعطاف‌پذیری کم در برابر روش‌های غیرمعمول", "گاه بیش از حد دستوری یا قضاوت‌گر", "دشواری در آرام شدن و رها کردن کار"],
+                careers: ["مدیر اجرایی و عملیاتی", "مدیر مالی و بانکی", "افسر ارشد و مدیر امنیتی", "قاضی و وکیل", "مدیر پروژه ساختمانی"],
+                matches: ["ISFP", "ISTP"],
+                famous: "هنری فورد، میشل اوباما، سونیا سوتومایور"
+            },
+            "ESFJ": {
+                title: "سفیر / حامی جمع (Consul)",
+                group: "گروه نگهبانان (Sentinels)",
+                tagline: "افرادی فوق‌العاده خونگرم، محبوب و مسئولیت‌پذیر که همیشه مشتاق کمک به دیگران هستند.",
+                description: "تیپ ESFJ قلب تپنده جمع‌های دوستانه و خانوادگی است. آن‌ها عاشق ایجاد هماهنگی، میزبانی، حمایت عملی از دیگران و حفظ سنت‌های ارزشمند هستند. توجه به احساسات اطرافیان و ایجاد محیطی امن و صمیمی اولویت اصلی آن‌هاست.",
+                strengths: ["مهارت اجتماعی و همدلی بسیار بالا", "وظیفه‌شناس، منظم و وفادار", "توانایی عالی در کار تیمی و هماهنگی", "حمایت‌گر عملی در روزهای سخت"],
+                weaknesses: ["نیاز زیاد به تأیید و قدردانی دیگران", "حساسیت بالا نسبت به انتقاد", "نگرانی بیش از حد درباره جایگاه اجتماعی"],
+                careers: ["مدیر روابط عمومی و تشریفات", "مشاور مدرسه و آموزش", "مدیر فروش و خدمات مشتریان", "کادر درمان و سلامت", "برنامه‌ریز رویدادها"],
+                matches: ["ISFP", "ISTP"],
+                famous: "تیلور سوئیفت، جنیفر گارنر، بیل کلینتون"
+            },
+            "ISTP": {
+                title: "چیره‌دست / صنعت‌گر (Virtuoso)",
+                group: "گروه کاوشگران (Explorers)",
+                tagline: "آزمایشگرانی جسور، خونسرد و عمل‌گرا که استاد کار با ابزارها و حل بحران‌های لحظه‌ای هستند.",
+                description: "تیپ ISTP عاشق کشف نحوه کارکرد اشیاء و سیستم‌ها از طریق تجربه مستقیم است. آن‌ها در شرایط بحرانی فوق‌العاده خونسرد و منطقی عمل می‌کنند، از قوانین دست‌وپاگیر بیزارند و ترجیح می‌دهند با آزادی عمل، مسائل واقعی را در لحظه حل کنند.",
+                strengths: ["خونسردی بی‌نظیر در بحران‌ها", "مهارت فنی و حل مسئله عملی فوق‌العاده", "منعطف، واقع‌بین و عمل‌گرا", "مستقل و خودکفا"],
+                weaknesses: ["تودار و دشوار برای شناخت عاطفی", "کلافه شدن سریع از تعهدات بلندمدت و یکنواخت", "گاهی ریسک‌پذیر بیش از حد"],
+                careers: ["مهندس مکانیک و پرواز", "خلبان و نیروهای ویژه امداد", "متخصص امنیت سایبری", "جراح و پزشک اورژانس", "تحلیل‌گر فنی بازارهای مالی"],
+                matches: ["ESTJ", "ESFJ"],
+                famous: "کلینت ایستوود، تام کروز، مایکل جردن"
+            },
+            "ISFP": {
+                title: "ماجراجو / هنرمند (Adventurer)",
+                group: "گروه کاوشگران (Explorers)",
+                tagline: "هنرمندانی منعطف، خوش‌ذوق و مهربان که همیشه آماده کشف زیبایی‌های تازه در لحظه هستند.",
+                description: "افراد ISFP با حواس پنج‌گانه و زیبایی‌شناسی قوی در زمان حال زندگی می‌کنند. آن‌ها آرام، فروتن و بسیار خوش‌قلب هستند و به جای حرف زدن، احساسات و خلاقیت خود را در عمل، هنر، سبک زندگی و محبت واقعی به دیگران نشان می‌دهند.",
+                strengths: ["ذوق هنری و زیبایی‌شناسی بالا", "بسیار مهربان، صلح‌طلب و بدون قضاوت", "انعطاف‌پذیر و سازگار با زمان حال", "وفادار به ارزش‌های شخصی"],
+                weaknesses: ["گریز از برنامه‌ریزی‌های بلندمدت و خشک", "حساسیت درونی زیاد به انتقاد", "فرو ریختن در محیط‌های پر از رقابت و تنش"],
+                careers: ["طراح مد و دکوراسیون", "عکاس و تدوین‌گر", "آهنگ‌ساز و موزیسین", "دام‌پزشک و فعال محیط زیست", "سرآشپز حرفه‌ای"],
+                matches: ["ENFJ", "ESFJ", "ESTJ"],
+                famous: "مایکل جکسون، لانا دل ری، کوین کاستنر"
+            },
+            "ESTP": {
+                title: "کارآفرین / عمل‌گرا (Entrepreneur)",
+                group: "گروه کاوشگران (Explorers)",
+                tagline: "افرادی باهوش، پرانرژی و تیزبین که عاشق هیجان، عمل فوری و زندگی در لحظه هستند.",
+                description: "تیپ ESTP اهل عمل است نه تئوری‌بافی طولانی! آن‌ها با جسارت وارد میدان می‌شوند، جزئیات محیط را به سرعت رصد می‌کنند و در مذاکره، مدیریت بحران و استفاده از فرصت‌های لحظه‌ای فوق‌العاده عمل می‌کنند. جمع‌ها با حضور آن‌ها همیشه پرانرژی است.",
+                strengths: ["شجاع، پرانرژی و عمل‌گرا", "هوش اجتماعی و قدرت مذاکره بالا", "تیزبین نسبت به تغییرات محیطی", "واکنش سریع در شرایط اضطراری"],
+                weaknesses: ["بی‌حوصلگی نسبت به تئوری‌ها و برنامه‌ریزی بلندمدت", "تصمیم‌گیری‌های گاه عجولانه و پرریسک", "چالش با قوانین محدودکننده"],
+                careers: ["کارآفرین و معامله‌گر بازار سرمایه", "مدیر فروش و مذاکره‌کننده ارشد", "ورزشکار و مربی حرفه‌ای", "کارآگاه و مدیر بحران", "تهیه‌کننده اجرایی"],
+                matches: ["ISFJ", "ISTJ"],
+                famous: "ارنست همینگوی، مدونا، جک نیکلسون"
+            },
+            "ESFP": {
+                title: "سرگرم‌کننده (Entertainer)",
+                group: "گروه کاوشگران (Explorers)",
+                tagline: "افرادی خودجوش، پرشور و خونگرم که زندگی در کنار آن‌ها هرگز کسل‌کننده نمی‌شود.",
+                description: "تیپ ESFP عاشق زندگی، مردم و تجربه‌های شاد و ملموس است. آن‌ها با انرژی مسری، شوخ‌طبعی و قلب مهربان خود، هر محیط سردی را گرم می‌کنند. بسیار بخشنده و واقع‌بین هستند و در کارهایی که نیاز به ارتباط انسانی و خلاقیت عملی دارد می‌درخشند.",
+                strengths: ["بسیار خونگرم، شاداب و اجتماعی", "مشاهده‌گر دقیق و حامی عملی دوستان", "دارای حس زیبایی‌شناسی و نمایش عالی", "سازگار و انعطاف‌پذیر"],
+                weaknesses: ["فرار از موقعیت‌های تلخ یا تعارض‌های پیچیده", "کاهش تمرکز در کارهای انفرادی و طولانی", "خرج کردن یا تصمیم‌گیری هیجانی"],
+                careers: ["بازیگر، مجری و هنرمند صحنه", "طراح رویداد و تورلیدر", "مشاور فروش و مهماندار", "مربی ورزشی و سبک زندگی", "روابط عمومی"],
+                matches: ["ISFJ", "ISTJ"],
+                famous: "مریلین مونرو، ادل، لئوناردو دیکاپریو"
+            }
+        };
+
+        // ==========================================
+        // 2. QUIZ QUESTIONS (12 STANDARD QUESTIONS)
+        // ==========================================
+        const QUIZ_QUESTIONS = [
+            // Dimension E vs I (3 questions)
+            {
+                dimension: "EI",
+                badge: "بُعد منبع انرژی (E / I)",
+                question: "۱. پس از یک هفته کاری بسیار شلوغ و خسته‌کننده، چگونه انرژی خود را بازیابی می‌کند؟",
+                options: [
+                    { text: "بیرون رفتن با دوستان، شرکت در مهمانی یا معاشرت پرانرژی با دیگران", pole: "E", weight: 2 },
+                    { text: "گذراندن وقت در یک جمع کوچک و صمیمی", pole: "E", weight: 1 },
+                    { text: "استراحت در خلوت، مطالعه، فیلم دیدن یا انجام سرگرمی‌های فردی در تنهایی", pole: "I", weight: 2 }
+                ]
+            },
+            {
+                dimension: "EI",
+                badge: "بُعد منبع انرژی (E / I)",
+                question: "۲. در جلسات، کلاس‌ها یا جمع‌های جدید معمولاً چه الگوی رفتاری دارد؟",
+                options: [
+                    { text: "به راحتی سر صحبت را باز می‌کند، بلند فکر می‌کند و فعالانه وارد بحث می‌شود", pole: "E", weight: 2 },
+                    { text: "ابتدا سکوت کرده و فضا را می‌سنجد و فقط در صورت لزوم یا آشنایی صحبت می‌کند", pole: "I", weight: 2 },
+                    { text: "بیشتر شنونده است و ترجیح می‌دهد مکالمات یک‌به‌یک و عمیق داشته باشد", pole: "I", weight: 1 }
+                ]
+            },
+            {
+                dimension: "EI",
+                badge: "بُعد منبع انرژی (E / I)",
+                question: "۳. دوستان و اطرافیان او را بیشتر چگونه توصیف می‌کنند؟",
+                options: [
+                    { text: "پرجنب‌وجوش، اجتماعی، خوش‌صحبت و دارای دایره دوستان گسترده", pole: "E", weight: 2 },
+                    { text: "آرام، متفکر، تودار که تعداد محدودی دوست بسیار صمیمی دارد", pole: "I", weight: 2 }
+                ]
+            },
+
+            // Dimension S vs N (3 questions)
+            {
+                dimension: "SN",
+                badge: "بُعد دریافت اطلاعات (S / N)",
+                question: "۴. هنگام یادگیری یک موضوع یا مهارت جدید، کدام روش را ترجیح می‌دهد؟",
+                options: [
+                    { text: "مثال‌های واقعی، دستورالعمل‌های گام‌به‌گام و کاربرد عملی در دنیای واقعی", pole: "S", weight: 2 },
+                    { text: "درک تصویر کلان، مفاهیم تئوری، چرایی موضوع و ایده‌های نوآورانه", pole: "N", weight: 2 },
+                    { text: "ترکیبی از تجربه ملموس و کمی ایده‌پردازی", pole: "S", weight: 1 }
+                ]
+            },
+            {
+                dimension: "SN",
+                badge: "بُعد دریافت اطلاعات (S / N)",
+                question: "۵. در گفت‌وگوهای روزمره و افکارش بیشتر روی چه چیزی متمرکز است؟",
+                options: [
+                    { text: "وقایع ملموس، جزئیات دقیق، تجربه‌های گذشته و آنچه همین الان در جریان است", pole: "S", weight: 2 },
+                    { text: "آینده، احتمالات، الگوهای پنهان، تخیلات و مباحث فلسفی یا انتزاعی", pole: "N", weight: 2 }
+                ]
+            },
+            {
+                dimension: "SN",
+                badge: "بُعد دریافت اطلاعات (S / N)",
+                question: "۶. در انجام پروژه‌ها به کدام ویژگی خود بیشتر تکیه می‌کند؟",
+                options: [
+                    { text: "واقع‌بینی، دقت به جزئیات و استفاده از روش‌های امتحان‌پسنده", pole: "S", weight: 2 },
+                    { text: "خلاقیت، شهود درونی و ابداع راه‌حل‌های کاملاً جدید و متفاوت", pole: "N", weight: 2 }
+                ]
+            },
+
+            // Dimension T vs F (3 questions)
+            {
+                dimension: "TF",
+                badge: "بُعد تصمیم‌گیری (T / F)",
+                question: "۷. هنگام گرفتن یک تصمیم مهم، کدام معیار برای او اولویت بالاتری دارد؟",
+                options: [
+                    { text: "منطق محض، تحلیل سود و زیان، عدالت یکسان و داده‌های عینی", pole: "T", weight: 2 },
+                    { text: "تأثیر تصمیم بر احساسات انسان‌ها، حفظ هماهنگی جمع و ارزش‌های اخلاقی", pole: "F", weight: 2 },
+                    { text: "تحلیل منطقی اما با در نظر گرفتن شرایط خاص افراد", pole: "T", weight: 1 }
+                ]
+            },
+            {
+                dimension: "TF",
+                badge: "بُعد تصمیم‌گیری (T / F)",
+                question: "۸. اگر دوستی با یک مشکل نزد او بیاید، اولین واکنش طبیعی او چیست؟",
+                options: [
+                    { text: "سریعاً مشکل را کالبدشکافی کرده و راه‌حل‌های منطقی و کاربردی پیشنهاد می‌دهد", pole: "T", weight: 2 },
+                    { text: "ابتدا با او همدلی می‌کند، به درد دلش گوش می‌دهد و حمایت عاطفی نشان می‌دهد", pole: "F", weight: 2 }
+                ]
+            },
+            {
+                dimension: "TF",
+                badge: "بُعد تصمیم‌گیری (T / F)",
+                question: "۹. در بحث‌ها و اختلاف‌نظرها کدام رفتار بیشتر از او سر می‌زند؟",
+                options: [
+                    { text: "رک و صریح است؛ رسیدن به حقیقت و استدلال درست را مهم‌تر از نرنجیدن دیگران می‌داند", pole: "T", weight: 2 },
+                    { text: "ملاحظه‌کار و صلح‌طلب است و تمام تلاشش را می‌کند کسی در بحث دلخور نشود", pole: "F", weight: 2 }
+                ]
+            },
+
+            // Dimension J vs P (3 questions)
+            {
+                dimension: "JP",
+                badge: "بُعد سبک زندگی (J / P)",
+                question: "۱۰. نحوه برنامه‌ریزی او برای سفر یا انجام پروژه‌های کاری چگونه است؟",
+                options: [
+                    { text: "از قبل برنامه دقیق، چک‌لیست و زمان‌بندی مشخص دارد و طبق آن پیش می‌رود", pole: "J", weight: 2 },
+                    { text: "کلیات را در نظر می‌گیرد اما ترجیح می‌دهد در لحظه و بر اساس حال‌وهوا تصمیم بگیرد", pole: "P", weight: 2 },
+                    { text: "کارها را اغلب نزدیک به مهلت نهایی (دقیقه نود) با تمرکز بالا انجام می‌دهد", pole: "P", weight: 1 }
+                ]
+            },
+            {
+                dimension: "JP",
+                badge: "بُعد سبک زندگی (J / P)",
+                question: "۱۱. واکنش او نسبت به تغییرات ناگهانی برنامه یا وضعیت‌های مبهم چیست؟",
+                options: [
+                    { text: "کلافه می‌شود؛ دوست دارد تکلیف هر چیزی سریع‌تر مشخص و قطعی شود", pole: "J", weight: 2 },
+                    { text: "به راحتی خودش را وفق می‌دهد و از باز بودن گزینه‌ها تا لحظه آخر لذت می‌برد", pole: "P", weight: 2 }
+                ]
+            },
+            {
+                dimension: "JP",
+                badge: "بُعد سبک زندگی (J / P)",
+                question: "۱۲. میز کار، اتاق یا فایل‌های شخصی او معمولاً چه وضعیتی دارد؟",
+                options: [
+                    { text: "منظم، دسته‌بندی‌شده و هر چیز سر جای مشخص خود قرار دارد", pole: "J", weight: 2 },
+                    { text: "کمی شلوغ و منعطف است، اما خودش می‌داند هر چیزی کجاست", pole: "P", weight: 2 }
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 3. STATE MANAGEMENT
+        // ==========================================
+        let currentMode = 'quiz';
+        let currentQuestionIndex = 0;
+        let quizAnswers = new Array(QUIZ_QUESTIONS.length).fill(null);
+        let lastCalculatedResult = null;
+
+        // ==========================================
+        // 4. INITIALIZATION & UI FUNCTIONS
+        // ==========================================
+        window.onload = function() {
+            lucide.createIcons();
+            renderQuestion();
+            updateTraitPreview();
+            renderAllTypesExplorer();
+            loadApiConfigToUI();
+        };
+
+        function switchMode(mode) {
+            currentMode = mode;
+            const modes = ['quiz', 'traits', 'ai'];
+            modes.forEach(m => {
+                const tab = document.getElementById(`tab-${m}`);
+                const sec = document.getElementById(`section-${m}`);
+                if (m === mode) {
+                    tab.className = "flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all bg-violet-600 text-white shadow-lg shadow-violet-600/30";
+                    sec.classList.remove('hidden');
+                } else {
+                    tab.className = "flex items-center justify-center gap-2 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm transition-all text-slate-300 hover:bg-slate-800/60";
+                    sec.classList.add('hidden');
+                }
+            });
+        }
+
+        // ==========================================
+        // 5. QUIZ LOGIC
+        // ==========================================
+        function renderQuestion() {
+            const q = QUIZ_QUESTIONS[currentQuestionIndex];
+            document.getElementById('quiz-step-label').textContent = `سوال ${toPersianNum(currentQuestionIndex + 1)} از ${toPersianNum(QUIZ_QUESTIONS.length)}`;
+            document.getElementById('quiz-dimension-badge').textContent = q.badge;
+            const progressPercent = ((currentQuestionIndex + 1) / QUIZ_QUESTIONS.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progressPercent}%`;
+            document.getElementById('quiz-question-text').textContent = q.question;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const isSelected = quizAnswers[currentQuestionIndex] === idx;
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-right p-4 rounded-2xl border flex items-center justify-between gap-3 ${
+                    isSelected
+                        ? 'bg-violet-600/30 border-violet-400 text-white shadow-lg shadow-violet-900/20'
+                        : 'bg-slate-900/70 border-slate-700/80 text-slate-200 hover:border-violet-500/50 hover:bg-slate-800/80'
+                }`;
+                btn.onclick = () => selectQuizOption(idx);
+
+                btn.innerHTML = `
+                    <span class="text-sm sm:text-base font-medium leading-relaxed">${opt.text}</span>
+                    <div class="w-6 h-6 rounded-full border flex items-center justify-center shrink-0 ${
+                        isSelected ? 'border-violet-300 bg-violet-500 text-white' : 'border-slate-600'
+                    }">
+                        ${isSelected ? '✓' : ''}
+                    </div>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+        }
+
+        function selectQuizOption(optionIdx) {
+            quizAnswers[currentQuestionIndex] = optionIdx;
+            renderQuestion();
+
+            setTimeout(() => {
+                if (currentQuestionIndex < QUIZ_QUESTIONS.length - 1) {
+                    currentQuestionIndex++;
+                    renderQuestion();
+                } else {
+                    calculateFromQuiz();
+                }
+            }, 220);
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function resetQuiz() {
+            currentQuestionIndex = 0;
+            quizAnswers = new Array(QUIZ_QUESTIONS.length).fill(null);
+            document.getElementById('section-result').classList.add('hidden');
+            renderQuestion();
+        }
+
+        function calculateFromQuiz() {
+            const scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+
+            QUIZ_QUESTIONS.forEach((q, idx) => {
+                const ansIdx = quizAnswers[idx] !== null ? quizAnswers[idx] : 0;
+                const chosen = q.options[ansIdx];
+                scores[chosen.pole] += chosen.weight;
+            });
+
+            const pct = {
+                E: Math.round((scores.E / (scores.E + scores.I || 1)) * 100),
+                S: Math.round((scores.S / (scores.S + scores.N || 1)) * 100),
+                T: Math.round((scores.T / (scores.T + scores.F || 1)) * 100),
+                J: Math.round((scores.J / (scores.J + scores.P || 1)) * 100)
+            };
+
+            const code =
+                (pct.E >= 50 ? 'E' : 'I') +
+                (pct.S >= 50 ? 'S' : 'N') +
+                (pct.T >= 50 ? 'T' : 'F') +
+                (pct.J >= 50 ? 'J' : 'P');
+
+            displayFinalResult(code, pct, null);
+        }
+
+        // ==========================================
+        // 6. TRAIT SLIDERS LOGIC
+        // ==========================================
+        function updateTraitPreview() {
+            const valI = parseInt(document.getElementById('slider-EI').value, 10);
+            const valN = parseInt(document.getElementById('slider-SN').value, 10);
+            const valF = parseInt(document.getElementById('slider-TF').value, 10);
+            const valP = parseInt(document.getElementById('slider-JP').value, 10);
+
+            const pctE = 100 - valI;
+            const pctS = 100 - valN;
+            const pctT = 100 - valF;
+            const pctJ = 100 - valP;
+
+            document.getElementById('label-EI').textContent = pctE >= 50 ? `${toPersianNum(pctE)}٪ برون‌گرا (E)` : `${toPersianNum(valI)}٪ درون‌گرا (I)`;
+            document.getElementById('label-SN').textContent = pctS >= 50 ? `${toPersianNum(pctS)}٪ حسی (S)` : `${toPersianNum(valN)}٪ شهودی (N)`;
+            document.getElementById('label-TF').textContent = pctT >= 50 ? `${toPersianNum(pctT)}٪ متفکر (T)` : `${toPersianNum(valF)}٪ احساسی (F)`;
+            document.getElementById('label-JP').textContent = pctJ >= 50 ? `${toPersianNum(pctJ)}٪ قضاوتی (J)` : `${toPersianNum(valP)}٪ ادراکی (P)`;
+        }
+
+        function calculateFromSliders() {
+            const valI = parseInt(document.getElementById('slider-EI').value, 10);
+            const valN = parseInt(document.getElementById('slider-SN').value, 10);
+            const valF = parseInt(document.getElementById('slider-TF').value, 10);
+            const valP = parseInt(document.getElementById('slider-JP').value, 10);
+
+            const pct = {
+                E: 100 - valI,
+                S: 100 - valN,
+                T: 100 - valF,
+                J: 100 - valP
+            };
+
+            const code =
+                (pct.E >= 50 ? 'E' : 'I') +
+                (pct.S >= 50 ? 'S' : 'N') +
+                (pct.T >= 50 ? 'T' : 'F') +
+                (pct.J >= 50 ? 'J' : 'P');
+
+            displayFinalResult(code, pct, null);
+        }
+
+        // ==========================================
+        // 7. AI FREE-TEXT ANALYZER
+        // ==========================================
+        function fillSampleText(sampleId) {
+            const samples = {
+                1: "این فرد بسیار آرام و درون‌گراست و از مهمانی‌های شلوغ خسته می‌شود. همیشه به آینده، استراتژی‌های بلندمدت و بهینه‌سازی سیستم‌ها فکر می‌کند. در تصمیم‌گیری‌ها کاملاً منطقی، رک و تحلیل‌گر است و برای تمام کارهایش برنامه و چارچوب مشخصی دارد.",
+                2: "بسیار خونگرم، پرانرژی و معاشرتی است. عاشق ایده‌های نو، هنر و خلاقیت است و با همه خیلی زود صمیمی و همدل می‌شود. اما از کارهای روتین، برنامه‌ریزی خشک و قوانین دست‌وپاگیر به شدت فراری است و دوست دارد آزاد و خودجوش باشد.",
+                3: "آدم بسیار دلسوز، مهربان و مسئولی است که همیشه حواسش به نیازهای خانواده و دوستانش هست. به تجربه‌های واقعی، سنت‌ها و جزئیات عملی زندگی توجه زیادی دارد، از درگیری و بحث بیزار است و کارهایش را با نظم و دقت بالا انجام می‌دهد."
+            };
+            document.getElementById('ai-input-text').value = samples[sampleId] || "";
+            document.getElementById('ai-error-box').classList.add('hidden');
+        }
+
+        async function analyzeWithAI() {
+            const text = document.getElementById('ai-input-text').value.trim();
+            const errBox = document.getElementById('ai-error-box');
+            const submitBtn = document.getElementById('btn-ai-submit');
+
+            if (text.length < 15) {
+                errBox.textContent = "لطفاً حداقل یک یا دو جمله درباره ویژگی‌های اخلاقی و رفتاری فرد بنویسید تا تحلیل دقیق‌تری انجام شود.";
+                errBox.classList.remove('hidden');
+                return;
+            }
+            errBox.classList.add('hidden');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>در حال کالبدشکافی ویژگی‌های شخصیتی...</span>`;
+            lucide.createIcons();
+
+            const activeCfg = getActiveApiConfig();
+
+            const systemPrompt = `You are an expert MBTI psychologist. Analyze the Persian description of a person's personality traits and determine their exact 4-letter MBTI type (e.g., INTJ, ENFP, ISFJ, etc.), percentage scores for E (0-100), S (0-100), T (0-100), and J (0-100), and provide a concise 2-3 sentence psychological reasoning in Persian explaining why this MBTI type matches the input text.
+Respond ONLY with a valid JSON object matching this exact structure:
+{"mbtiCode": "INTJ", "percentE": 25, "percentS": 30, "percentT": 80, "percentJ": 75, "reasoning": "..."}`;
+
+            try {
+                const aiRes = await callUniversalAI({
+                    provider: activeCfg.PROVIDER,
+                    endpoint: activeCfg.ENDPOINT_URL,
+                    apiKey: activeCfg.API_KEY,
+                    model: activeCfg.MODEL_NAME,
+                    systemPrompt: systemPrompt,
+                    userPrompt: text,
+                    maxTokens: 500,
+                    isTest: false
+                });
+
+                const parsed = extractJsonFromText(aiRes.text);
+                const validCode = (parsed.mbtiCode || "").toUpperCase().trim();
+
+                if (MBTI_DATABASE[validCode]) {
+                    const pct = {
+                        E: Math.min(100, Math.max(0, Number(parsed.percentE ?? 50))),
+                        S: Math.min(100, Math.max(0, Number(parsed.percentS ?? 50))),
+                        T: Math.min(100, Math.max(0, Number(parsed.percentT ?? 50))),
+                        J: Math.min(100, Math.max(0, Number(parsed.percentJ ?? 50)))
+                    };
+                    displayFinalResult(validCode, pct, parsed.reasoning);
+                } else {
+                    throw new Error("کد MBTI معتبری در پاسخ یافت نشد.");
+                }
+            } catch (e) {
+                // لایه دوم پشتیبان در صورت عدم دسترسی به سرور
+                const fallback = localSemanticAnalyze(text);
+                displayFinalResult(fallback.code, fallback.pct, fallback.reasoning + ` (تحلیل توسط موتور پشتیبان داخلی انجام شد؛ خطای سرور: ${e.message})`);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i data-lucide="wand-2" class="w-5 h-5"></i><span>تحلیل هوشمند متن و تشخیص تیپ MBTI</span>`;
+                lucide.createIcons();
+            }
+        }
+
+        // Local heuristic analyzer (Fallback)
+        function localSemanticAnalyze(text) {
+            let e = 50, s = 50, t = 50, j = 50;
+
+            if (/خونگرم|اجتماعی|پرانرژی|پر انرژی|معاشرت|مهمانی|شلوغ|برون‌گرا|برونگرا|پرشور|خوش‌صحبت/.test(text)) e += 28;
+            if (/درون‌گرا|درونگرا|آرام|تنهایی|خلوت|ساکت|تودار|کم‌حرف|کتاب/.test(text)) e -= 28;
+
+            if (/واقع‌بین|عمل‌گرا|جزئیات|تجربه|سنت|ملموس|دقیق/.test(text)) s += 26;
+            if (/خلاق|آینده|فلسفی|ایده|تخیل|شهود|نوآور|استراتژی|رویا/.test(text)) s -= 26;
+
+            if (/منطقی|تحلیل|رک|عقل|استدلال|قاطع|عدالت|سود/.test(text)) t += 28;
+            if (/احساسی|مهربان|دلسوز|همدل|عاطفی|صلح|حامی|قلب/.test(text)) t -= 28;
+
+            if (/منظم|برنامه|قانون|مسئولیت|کمال‌گرا|دقیق|چک‌لیست/.test(text)) j += 28;
+            if (/بی‌نظم|منعطف|خودجوش|آزاد|لحظه|فراری از روتین|تغییر/.test(text)) j -= 28;
+
+            e = Math.min(92, Math.max(12, e));
+            s = Math.min(92, Math.max(12, s));
+            t = Math.min(92, Math.max(12, t));
+            j = Math.min(92, Math.max(12, j));
+
+            const code = (e >= 50 ? 'E' : 'I') + (s >= 50 ? 'S' : 'N') + (t >= 50 ? 'T' : 'F') + (j >= 50 ? 'J' : 'P');
+            const reasoning = `بر اساس کلیدواژه‌ها و الگوهای رفتاری موجود در متن شما، گرایش فرد به بُعد ${e >= 50 ? 'برون‌گرایی' : 'درون‌گرایی'}، دریافت اطلاعات به صورت ${s >= 50 ? 'حسی و واقع‌بینانه' : 'شهودی و آینده‌نگر'}، تصمیم‌گیری ${t >= 50 ? 'منطقی و تحلیلی' : 'همدلانه و احساسی'} و سبک زندگی ${j >= 50 ? 'منظم و برنامه‌محور' : 'منعطف و خودجوش'} تشخیص داده شد که با تیپ ${code} مطابقت دارد.`;
+
+            return { code, pct: { E: e, S: s, T: t, J: j }, reasoning };
+        }
+
+        // ==========================================
+        // 8. DISPLAY RESULTS & EXPLORER
+        // ==========================================
+        function displayFinalResult(code, pct, customReasoning) {
+            const data = MBTI_DATABASE[code] || MBTI_DATABASE["INTJ"];
+            lastCalculatedResult = { code, data, pct };
+
+            document.getElementById('res-group-badge').textContent = data.group;
+            document.getElementById('res-code').textContent = code;
+            document.getElementById('res-title').textContent = data.title;
+            document.getElementById('res-tagline').textContent = data.tagline;
+            document.getElementById('res-description').textContent = data.description;
+
+            const pctI = 100 - pct.E;
+            const pctN = 100 - pct.S;
+            const pctF = 100 - pct.T;
+            const pctP = 100 - pct.J;
+
+            document.getElementById('bar-label-E').textContent = `برون‌گرایی (E): ${toPersianNum(pct.E)}٪`;
+            document.getElementById('bar-label-I').textContent = `درون‌گرایی (I): ${toPersianNum(pctI)}٪`;
+            document.getElementById('bar-fill-E').style.width = `${pct.E}%`;
+            document.getElementById('bar-fill-I').style.width = `${pctI}%`;
+
+            document.getElementById('bar-label-S').textContent = `حسی (S): ${toPersianNum(pct.S)}٪`;
+            document.getElementById('bar-label-N').textContent = `شهودی (N): ${toPersianNum(pctN)}٪`;
+            document.getElementById('bar-fill-S').style.width = `${pct.S}%`;
+            document.getElementById('bar-fill-N').style.width = `${pctN}%`;
+
+            document.getElementById('bar-label-T').textContent = `متفکر (T): ${toPersianNum(pct.T)}٪`;
+            document.getElementById('bar-label-F').textContent = `احساسی (F): ${toPersianNum(pctF)}٪`;
+            document.getElementById('bar-fill-T').style.width = `${pct.T}%`;
+            document.getElementById('bar-fill-F').style.width = `${pctF}%`;
+
+            document.getElementById('bar-label-J').textContent = `قضاوتی (J): ${toPersianNum(pct.J)}٪`;
+            document.getElementById('bar-label-P').textContent = `ادراکی (P): ${toPersianNum(pctP)}٪`;
+            document.getElementById('bar-fill-J').style.width = `${pct.J}%`;
+            document.getElementById('bar-fill-P').style.width = `${pctP}%`;
+
+            const aiBox = document.getElementById('ai-custom-reasoning');
+            if (customReasoning) {
+                document.getElementById('ai-reasoning-text').textContent = customReasoning;
+                aiBox.classList.remove('hidden');
+            } else {
+                aiBox.classList.add('hidden');
+            }
+
+            document.getElementById('res-strengths').innerHTML = data.strengths.map(s => `<li>${s}</li>`).join('');
+            document.getElementById('res-weaknesses').innerHTML = data.weaknesses.map(w => `<li>${w}</li>`).join('');
+            document.getElementById('res-careers').innerHTML = data.careers.map(c =>
+                `<span class="px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-400/30 text-indigo-200 text-xs font-medium">${c}</span>`
+            ).join('');
+
+            document.getElementById('res-matches').innerHTML = data.matches.map(m =>
+                `<button onclick="quickSelectType('${m}')" class="px-3 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 text-xs font-bold transition">${m}</button>`
+            ).join('');
+            document.getElementById('res-famous').textContent = data.famous;
+
+            const resultSection = document.getElementById('section-result');
+            resultSection.classList.remove('hidden');
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderAllTypesExplorer() {
+            const container = document.getElementById('all-types-grid');
+            container.innerHTML = '';
+            Object.keys(MBTI_DATABASE).forEach(code => {
+                const item = MBTI_DATABASE[code];
+                const shortTitle = item.title.split('(')[0].trim();
+                const btn = document.createElement('button');
+                btn.className = "p-2.5 rounded-xl bg-slate-900/70 hover:bg-violet-600/30 border border-slate-800 hover:border-violet-500/50 transition flex flex-col items-center justify-center text-center group";
+                btn.onclick = () => quickSelectType(code);
+                btn.innerHTML = `
+                    <span class="text-sm font-black text-violet-300 group-hover:text-white tracking-wider">${code}</span>
+                    <span class="text-[11px] text-slate-400 group-hover:text-slate-200 mt-0.5">${shortTitle}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function quickSelectType(code) {
+            const defaultPct = {
+                E: code[0] === 'E' ? 75 : 25,
+                S: code[1] === 'S' ? 75 : 25,
+                T: code[2] === 'T' ? 75 : 25,
+                J: code[3] === 'J' ? 75 : 25
+            };
+            displayFinalResult(code, defaultPct, null);
+        }
+
+        function restartAll() {
+            resetQuiz();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function copyResultToClipboard() {
+            if (!lastCalculatedResult) return;
+            const { code, data } = lastCalculatedResult;
+            const textToCopy = `تیپ شخصیتی MBTI: ${code} - ${data.title}\n${data.tagline}\n\nنقاط قوت: ${data.strengths.join('، ')}\nشغل‌های مناسب: ${data.careers.join('، ')}`;
+
+            const tempInput = document.createElement('textarea');
+            tempInput.value = textToCopy;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+
+            showToast('نتیجه تحلیل در حافظه کپی شد!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('hidden');
+            toast.classList.add('flex');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                toast.classList.remove('flex');
+            }, 2600);
+        }
+
+        function toPersianNum(num) {
+            const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+            return String(num).replace(/\d/g, x => persianDigits[x]);
+        }
+    </script>
+</body>
+</html>
